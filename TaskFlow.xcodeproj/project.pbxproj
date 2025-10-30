@@ -7,14 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5C3CFC442EB38F7300FB71B6 /* Readme 2.md in Resources */ = {isa = PBXBuildFile; fileRef = 5C3CFC422EB38F6900FB71B6 /* Readme 2.md */; };
 		5C4C8E692EABF637005AC3BC /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 5C4C8E682EABF637005AC3BC /* FirebaseAuth */; };
 		5C4C8E6B2EABF637005AC3BC /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 5C4C8E6A2EABF637005AC3BC /* FirebaseFirestore */; };
 		5C4C8E8F2EACD5E4005AC3BC /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 5C4C8E8E2EACD5E4005AC3BC /* FirebaseStorage */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		5C3CFC422EB38F6900FB71B6 /* Readme 2.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "Readme 2.md"; sourceTree = "<group>"; };
 		5CF638252E9FC0F1003B11EC /* TaskFlow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TaskFlow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -53,7 +51,6 @@
 				5CF638272E9FC0F1003B11EC /* TaskFlow */,
 				5CBA40DE2EABF4740016EAF3 /* Frameworks */,
 				5CF638262E9FC0F1003B11EC /* Products */,
-				5C3CFC422EB38F6900FB71B6 /* Readme 2.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -135,7 +132,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5C3CFC442EB38F7300FB71B6 /* Readme 2.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

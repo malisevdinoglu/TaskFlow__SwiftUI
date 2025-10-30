@@ -204,48 +204,45 @@ TaskFlow; görev atama, ilerleme takibi, SLA uyarıları, imza toplama ve PDF ra
 ---
 
 ## Proje Yapısı
-'''
+
+Aşağıdaki şema ve açıklamalar, projenin modüler yapısını ve her dosyanın sorumluluğunu özetler. Dosya/klasör adları projeye göre ufak farklılık gösterebilir.
+
+```text
 TaskFlow/
-├─ TaskFlowApp.swift􀰓                 # App giriş noktası, modelContainer, auth yönlendirme, bildirim delegesi
+├─ TaskFlowApp.swift                 # App giriş noktası, modelContainer, auth yönlendirme, bildirim delegesi
 │
 ├─ Models/
-│  ├─ LocalAppTask.swift􀰓             # SwiftData @Model; yerel görev yapısı ve yardımcı computed alanlar
-│  ├─ AppTask.swift􀰓                  # Firestore Codable modeli; uzak veri şeması
+│  ├─ LocalAppTask.swift             # SwiftData @Model; yerel görev yapısı ve yardımcı alanlar
+│  ├─ AppTask.swift                  # Firestore Codable modeli; uzak veri şeması
 │  ├─ ChecklistItem.swift            # Checklist maddesi modeli (id, text, isCompleted)
 │  └─ User.swift                     # (Varsa) Auth kullanıcı modeli; Firestore'dan decode edilir
 │
-│
 ├─ ViewModels/
-│  ├─ TaskListViewModel.swift􀰓        # Liste ekranı için Firebase dinleme/kurulum, repo koordinasyonu
-│  ├─ TaskDetailViewModel.swift􀰓      # Detay ekranı iş akışları: durum geçişleri, medya, imza, PDF tetikleme
-│  ├─ NewTaskViewModel.swift􀰓         # Yeni görev oluşturma formu ve doğrulamalar
-│  └─ LoginViewModel.swift􀰓           # Giriş işlemleri ve hata yönetimi
+│  ├─ TaskListViewModel.swift        # Liste ekranı; Firebase dinleme/kurulum, repo koordinasyonu
+│  ├─ TaskDetailViewModel.swift      # Detay ekranı; durum geçişleri, medya, imza, PDF tetikleme
+│  ├─ NewTaskViewModel.swift         # Yeni görev oluşturma formu ve doğrulamalar
+│  └─ LoginViewModel.swift           # Giriş işlemleri ve hata yönetimi
 │
 ├─ Views/
-│  ├─ MainView.swift􀰓                 # Dashboard + TabView sekmeleri (Ana Sayfa/Görevler/Raporlar/Ayarlar)
-│  ├─ TaskListView.swift􀰓             # Görev listesi, filtre, SLA görselleştirme (sol şerit + sayaç)
-│  ├─ TaskDetailView.swift􀰓           # Görev detayı, checklist, medya, imza, durum butonları
-│  ├─ MyReportsView.swift􀰓            # PDF rapor listesi, Quick Look, paylaşım ve silme
-│  ├─ SettingsView.swift􀰓             # Kullanıcı bilgisi, tema seçimi (placeholder), çıkış
-│  ├─ NewTaskView.swift􀰓              # Yeni görev oluşturma formu (SwiftData + Firestore senk.)
-│  └─ ReportView.swift􀰓               # PDF içerik şablonu (başlık, alanlar, açıklama)
+│  ├─ MainView.swift                 # Dashboard + TabView (Ana Sayfa/Görevler/Raporlar/Ayarlar)
+│  ├─ TaskListView.swift             # Görev listesi, filtre, SLA görselleştirme
+│  ├─ TaskDetailView.swift           # Görev detayı, checklist, medya, imza, durum butonları
+│  ├─ MyReportsView.swift            # PDF rapor listesi, Quick Look, paylaşım ve silme
+│  ├─ SettingsView.swift             # Kullanıcı bilgisi, tema (placeholder), çıkış
+│  ├─ NewTaskView.swift              # Yeni görev oluşturma (SwiftData + Firestore senk.)
+│  └─ ReportView.swift               # PDF içerik şablonu
 │
 ├─ Services/
-│  ├─ TaskService.swift􀰓              # Firestore CRUD (save/fetch/update/delete), checklist ve media URL güncellemeleri
-│  ├─ StorageService.swift􀰓           # Firebase Storage yükleme/silme (imza, medya)
-│  ├─ LocalNotificationService.swift􀰓 # UNUserNotificationCenter ile SLA bildirim planlama/iptal
+│  ├─ TaskService.swift              # Firestore CRUD, checklist ve media URL güncellemeleri
+│  ├─ StorageService.swift           # Firebase Storage yükleme/silme (imza, medya)
+│  ├─ LocalNotificationService.swift # UNUserNotificationCenter ile SLA bildirim planlama/iptal
 │  └─ PDFService.swift               # (Varsa) PDF oluşturma mantığı
-├─ Repository/
-│  └─ TaskRepository.swift􀰓           # Servisleri orkestre eder; SwiftData ile Firestore arasında senkron
 │
-├─ AppDelegate/
-│  └─ (AppDelegate TaskFlowApp içinde) # Bildirim delegesi, izinler, t
+├─ Repository/
+│  └─ TaskRepository.swift           # Servisleri orkestre eder; SwiftData ↔ Firestore senkron
 │
 ├─ Resources/
 │  ├─ GoogleService-Info.plist       # Firebase yapılandırma dosyası
 │  └─ Assets.xcassets                # Uygulama ikonları ve renk varlıkları
 │
-└─ README.md                         #bu dosya 
-
-'''
-
+└─ README.md                         # Bu dosya

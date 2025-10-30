@@ -1,0 +1,55 @@
+- Bazı satırlarda satır sonu eksik/karışık olduğu için tek satıra sarmalanmış görünüyor.
+- Bazı yerlerde kopyala‑yapıştır sırasında görünmez özel karakterler (örn. U+FE0F, U+200B) ve “􀰓” gibi SF Symbol placeholder’ları metne girmiş; GitHub bunları kare kutu/ikon gibi render ediyor.
+
+Nasıl düzeltirsiniz
+1) Kod bloğu için doğru üçlü backtick kullanın ve dil etiketi (md, txt) ekleyin.
+2) Proje ağacını temiz, tek boşluklu ASCII karakterlerle yazın (│ ├ └ gibi çizgiler kalabilir, ama isterseniz tamamen tire ve boşlukla da yazabilirsiniz).
+3) “􀰓” gibi görünmeyen/özel karakterleri kaldırın.
+4) Başlıklar ve listeler arasında boş satır bırakın.
+
+Aşağıda “Proje Yapısı” ve “Yol Haritası” bölümlerini düzeltilmiş haliyle tekrar veriyorum. Bu dosyanın tamamını Readme.md’ye yapıştırabilirsiniz.
+
+```md:Readme.md
+## Proje Yapısı
+
+Aşağıdaki şema proje modüllerini ve dosya sorumluluklarını özetler.
+
+```text
+TaskFlow/
+├─ TaskFlowApp.swift                 # App giriş noktası, modelContainer, auth yönlendirme, bildirim delegesi
+│
+├─ Models/
+│  ├─ LocalAppTask.swift             # SwiftData @Model; yerel görev yapısı ve yardımcı alanlar
+│  ├─ AppTask.swift                  # Firestore Codable modeli; uzak veri şeması
+│  ├─ ChecklistItem.swift            # Checklist maddesi modeli (id, text, isCompleted)
+│  └─ User.swift                     # (Varsa) Auth kullanıcı modeli; Firestore'dan decode edilir
+│
+├─ ViewModels/
+│  ├─ TaskListViewModel.swift        # Liste ekranı; Firebase dinleme/kurulum, repo koordinasyonu
+│  ├─ TaskDetailViewModel.swift      # Detay ekranı; durum geçişleri, medya, imza, PDF tetikleme
+│  ├─ NewTaskViewModel.swift         # Yeni görev oluşturma formu ve doğrulamalar
+│  └─ LoginViewModel.swift           # Giriş işlemleri ve hata yönetimi
+│
+├─ Views/
+│  ├─ MainView.swift                 # Dashboard + TabView (Ana Sayfa/Görevler/Raporlar/Ayarlar)
+│  ├─ TaskListView.swift             # Görev listesi, filtre, SLA görselleştirme
+│  ├─ TaskDetailView.swift           # Görev detayı, checklist, medya, imza, durum butonları
+│  ├─ MyReportsView.swift            # PDF rapor listesi, Quick Look, paylaşım ve silme
+│  ├─ SettingsView.swift             # Kullanıcı bilgisi, tema (placeholder), çıkış
+│  ├─ NewTaskView.swift              # Yeni görev oluşturma (SwiftData + Firestore senk.)
+│  └─ ReportView.swift               # PDF içerik şablonu
+│
+├─ Services/
+│  ├─ TaskService.swift              # Firestore CRUD, checklist ve media URL güncellemeleri
+│  ├─ StorageService.swift           # Firebase Storage yükleme/silme (imza, medya)
+│  ├─ LocalNotificationService.swift # UNUserNotificationCenter ile SLA bildirim planlama/iptal
+│  └─ PDFService.swift               # (Varsa) PDF oluşturma mantığı
+│
+├─ Repository/
+│  └─ TaskRepository.swift           # Servisleri orkestre eder; SwiftData ↔ Firestore senkron
+│
+├─ Resources/
+│  ├─ GoogleService-Info.plist       # Firebase yapılandırma dosyası
+│  └─ Assets.xcassets                # Uygulama ikonları ve renk varlıkları
+│
+└─ README.md                         # Bu dosya

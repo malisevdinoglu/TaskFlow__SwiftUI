@@ -204,7 +204,7 @@ TaskFlow; görev atama, ilerleme takibi, SLA uyarıları, imza toplama ve PDF ra
 ---
 
 ## Proje Yapısı
-
+'''
 TaskFlow/
 ├─ TaskFlowApp.swift􀰓                 # App giriş noktası, modelContainer, auth yönlendirme, bildirim delegesi
 │
@@ -247,5 +247,5 @@ TaskFlow/
 │
 └─ README.md                         #bu dosya 
 
-
+'''
 

@@ -1,248 +1,585 @@
-# TaskFlow
+# TaskFlow - iOS Task Management System
 
-TaskFlow; görev atama, ilerleme takibi, SLA uyarıları, imza toplama ve PDF rapor üretimi sağlayan modern bir iOS uygulamasıdır. Uygulama SwiftUI + SwiftData ile yerel verileri yönetir, Firebase Firestore/Storage ile bulut senkronizasyonu yapar, yerel bildirimlerle SLA hatırlatmaları sunar. Koyu tema, kart tabanlı arayüz ve Tab Bar navigasyonu ile Apple tasarım ilkeleriyle uyumludur.
+<div align="center">
 
-## İçindekiler
-- [Özellikler](#özellikler)
-- [Mimari Genel Bakış](#mimari-genel-bakış)
-- [Ekranlar](#ekranlar)
-- [Kurulum](#kurulum)
-- [Çalıştırma](#çalıştırma)
-- [Kullanım Akışı](#kullanım-akışı)
-- [Teknik Detaylar](#teknik-detaylar)
-- [Proje Yapısı](#proje-yapısı)
-- [Sık Karşılaşılan Sorunlar](#sık-karşılaşılan-sorunlar)
-- [Yol Haritası](#yol-haritası)
-- [Lisans](#lisans)
-- [Katkı](#katkı)
-- [İletişim](#iletişim)
+A modern, production-ready iOS task management application built with SwiftUI, featuring real-time synchronization, SLA tracking, digital signatures, and automated PDF reporting.
+
+[Features](#features) • [Architecture](#architecture) • [Installation](#installation) • [Screenshots](#screenshots) • [Tech Stack](#tech-stack)
+
+</div>
 
 ---
 
-## Özellikler
+## 📋 Overview
 
-- Kimlik Doğrulama ve Rol Yönetimi
-  - Firebase Authentication ile giriş (e‑posta/şifre).
-  - Firestore’dan kullanıcı rolü (admin/kullanıcı) alınır.
-  - Admin kullanıcılar için “Yeni Görev” oluşturma butonu.
+TaskFlow is a comprehensive task management solution designed for teams and organizations that need to track work assignments, monitor SLA compliance, collect digital signatures, and generate professional reports. The app combines local-first architecture with cloud synchronization to ensure data availability even in offline scenarios.
 
-- Görev Yönetimi
-  - Görev listesi (SwiftData’dan @Query ile yerel veri).
-  - Duruma göre filtreleme (Planlandı, Yapılacak, Çalışmada, Kontrol, Tamamlandı).
-  - Görev detayında durum geçişleri (iş kurallarıyla korunur).
+## ✨ Features
 
-- SLA Kontrolü ve Bildirimler
-  - SLA süresi yaklaşan/geçen görevler görsel olarak vurgulanır.
-  - Yalnızca 24 saatten az kalan (dueSoon) ve süresi geçen (overdue) görevlerde SLA şeridi ve geri sayım görünür.
-  - 24 saatten fazla kalan görevlerde SLA renklendirmesi yapılmaz.
-  - Tamamlanan görevlerde SLA uyarısı gösterilmez.
-  - Yerel bildirim planlama: SLA’dan 1 saat önce bildirim (test için fallback 5 sn).
-  - Bildirime tıklanınca ilgili görev detayına otomatik navigasyon.
+### 🔐 Authentication & Authorization
+- Firebase Authentication with email/password
+- Role-based access control (Admin/User)
+- Secure user session management
+- Admin-only task creation capabilities
 
-- Medya ve İmza
-  - PhotosPicker ile fotoğraf ekleme.
-  - İmza toplama (çizim ekranı) ve saklama.
-  - Firebase Storage’a medya ve imza yükleme/silme.
+### 📊 Task Management
+- **Complete Task Lifecycle**: Plan → To-Do → In Progress → Review → Completed
+- **Status Filtering**: Quick access to tasks by current status
+- **Business Rules Enforcement**: 
+  - Media required for review status
+  - Digital signature mandatory for completion
+  - Checklist validation before task closure
+- **Real-time Synchronization**: Bidirectional sync between local SwiftData and Firebase Firestore
 
-- PDF Raporlama
-  - Tamamlanan görevlerden PDF raporu üretir (ReportView şablonu).
-  - MyReportsView ekranında raporları listeler, Quick Look ile ön izleme, paylaşım ve silme.
+### ⏰ SLA Tracking & Notifications
+- **Visual SLA Indicators**:
+  - ✅ On-time (24+ hours remaining): No visual indicator
+  - 🟠 Due soon (< 24 hours): Orange stripe + countdown timer
+  - 🔴 Overdue: Red stripe + red countdown timer
+  - ✔️ Completed: No SLA display
+- **Smart Notifications**: Local push notifications 1 hour before SLA deadline
+- **Live Updates**: Real-time countdown using Combine framework (updates every 60 seconds)
+- **Deep Linking**: Tap notification to navigate directly to task details
 
-- Yerel Veri Yönetimi
-  - SwiftData @Model (LocalAppTask) ile yerel kalıcılık.
-  - Firestore ile iki yönlü senkronizasyon (TaskRepository).
+### 📸 Media Management
+- PhotosPicker integration for image attachments
+- Firebase Storage upload/download
+- Multiple media attachments per task
+- Image deletion with automatic cloud cleanup
 
-- Modern UI/UX
-  - Koyu tema, cam efektli kartlar, tutarlı tipografi.
-  - TabView: Ana Sayfa (Dashboard), Görevlerim, Raporlarım, Ayarlar.
-  - Apple Human Interface Guidelines ile uyumlu, erişilebilirlik odaklı tasarım.
+### ✍️ Digital Signatures
+- Custom drawing canvas for signature capture
+- Signature storage in Firebase Storage
+- Signature validation for task completion
+- View and delete existing signatures
 
----
+### 📄 PDF Report Generation
+- Automated report creation for completed tasks
+- Professional report template (ReportView)
+- Reports stored locally in Documents folder
+- Quick Look preview integration
+- Share and export functionality
+- Report management interface
 
-## Mimari Genel Bakış
+### 📝 Checklist System
+- Dynamic checklist items per task
+- Real-time progress tracking
+- Add, check, and remove items
+- Completion validation before finishing tasks
 
-- Katmanlar
-  - View: SwiftUI ekranları (MainView, TaskListView, TaskDetailView, MyReportsView, SettingsView, LoginView).
-  - ViewModel: Ekranların durum ve eylemleri (TaskListViewModel, TaskDetailViewModel, NewTaskViewModel, LoginViewModel).
-  - Repository: Veri akışını koordine eder (TaskRepository).
-  - Services: Dış servislerle konuşur (TaskService – Firestore, StorageService – Storage, LocalNotificationService – UNUserNotificationCenter, PDFService – PDF üretimi).
-
-- Veri Modelleri
-  - LocalAppTask (SwiftData): firebaseId, title, taskDescription, statusRawValue/status, assignedTo, createdAt, slaDate, location, priority, category, signatureData, mediaURLs, checklist (JSON encode/decode).
-  - AppTask (Firestore, Codable): id, title, description, status, assignedTo, createdAt, slaDate, location, priority, category, signatureStorageURL, mediaURLs, checklist.
-  - AppTaskStatus (CaseIterable): Planlandı, Yapılacak, Çalışmada, Kontrol, Tamamlandı.
-  - ChecklistItem: id, text, isCompleted.
-
-- Senkronizasyon
-  - TaskRepository.startListeningToFirebase: Firestore snapshot listener ile görevleri çeker ve SwiftData’ya insert/update eder.
-  - Yeni görev ekleme, durum güncelleme, imza/medya/checklist değişiklikleri repository üzerinden hem yerelde hem uzakta güncellenir.
-
----
-
-## Ekranlar
-
-- LoginView
-  - Firebase Authentication ile giriş.
-  - Koyu tema, kart tabanlı düzen.
-
-- MainView (Dashboard)
-  - Bugünün Özeti: Bekleyen / Aktif / Tamamlanan (dikey kartlar).
-  - Admin için “Yeni Görev” butonu.
-  - Bildirime tıklamayla gelen taskId için TaskDetailView’e geçiş.
-
-- TaskListView
-  - @Query ile SwiftData’dan görevleri çeker.
-  - Duruma göre filtreleme dialog’u.
-  - SLA Görselleştirmesi:
-    - 24+ saat kalanlarda SLA şeridi ve sayaç yok.
-    - 24 saatten az kalanlarda turuncu sol şerit + geri sayım.
-    - Süresi geçenlerde kırmızı sol şerit + kırmızı geri sayım.
-    - Tamamlanan görevlerde SLA tamamen gizli.
-  - Canlı SLA güncellemesi: Her 60 saniyede bir “now” güncellenir (Combine Timer).
-
-- TaskDetailView
-  - Durum geçişleri:
-    - Kontrol’e geçiş için en az bir medya gerekli.
-    - Tamamlandı için imza zorunlu; checklist varsa tüm maddeler tamamlanmış olmalı.
-  - Medya ekleme ve silme.
-  - Checklist yönetimi (ekle, işaretle, sil).
-  - İmza ekleme/silme.
-  - Tamamlandı durumunda PDF rapor üretimi ve paylaşımı.
-
-- MyReportsView
-  - Belgeler klasöründeki “TaskFlowRapor-*.pdf” dosyalarını listeler.
-  - Quick Look ile ön izleme, paylaşma ve silme.
-  - SwiftData’dan başlık eşlemesi (taskId -> title).
-
-- SettingsView
-  - Kullanıcı bilgisi (e‑posta, rol).
-  - Tema seçimi (placeholder).
-  - Çıkış yap butonu.
+### 🎨 Modern UI/UX
+- **Dark Theme** with glassmorphic card design
+- **Tab-based Navigation**: Dashboard, Tasks, Reports, Settings
+- **Consistent Typography** following Apple Human Interface Guidelines
+- **Accessibility**: Built with accessibility in mind
+- **Responsive Design**: Optimized for all iPhone screen sizes
 
 ---
 
-## Kurulum
+## 🏗️ Architecture
 
-### Gereksinimler
-- Xcode 15+
-- iOS 17+ (SwiftData için)
-- Swift Package Manager ile Firebase paketleri
+TaskFlow follows a clean, layered architecture that separates concerns and promotes maintainability:
 
-### Firebase Yapılandırması
-1. Firebase Console’da bir iOS uygulaması oluşturun (Bundle ID’niz ile).
-2. GoogleService-Info.plist dosyasını projeye ekleyin ve hedefe dahil edin.
-3. Firestore ve Authentication (Email/Password) etkinleştirin.
-4. Storage’ı etkinleştirin. Test aşamasında uygun kuralları uygulayın.
-5. Firestore “users” koleksiyonunda, Authentication UID ile aynı id’ye sahip kullanıcı belgeleri oluşturup “role” alanını ayarlayın (admin/user).
+```
+┌─────────────────────────────────────────────────────┐
+│                     Views (SwiftUI)                  │
+│   MainView, TaskListView, TaskDetailView, etc.     │
+└─────────────────────┬───────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────┐
+│                    ViewModels                        │
+│  TaskListVM, TaskDetailVM, NewTaskVM, LoginVM       │
+└─────────────────────┬───────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────┐
+│                   Repository                         │
+│         TaskRepository (Orchestration Layer)         │
+└─────────────────────┬───────────────────────────────┘
+                      │
+┌─────────────────────▼───────────────────────────────┐
+│                    Services                          │
+│  TaskService │ StorageService │ NotificationService  │
+│  (Firestore) │   (Storage)    │   (Local Alerts)    │
+└──────────────────────────────────────────────────────┘
+```
 
-### Bildirimler
-- AppDelegate (TaskFlowApp.swift) içinde UNUserNotificationCenterDelegate ayarlı.
-- Uygulama açılışında kullanıcıdan izin istenir; kabul edilirse yerel bildirim planlanır.
-- Bildirime tıklanınca: AppDelegate.didReceive -> NotificationCenter .taskNotificationTapped -> MainView.onReceive -> ilgili TaskDetailView’e navigasyon.
+### Data Models
 
-### SwiftData
-- .modelContainer(for: LocalAppTask.self) App girişinde tanımlı.
-- @Query ile View’larda veri otomatik güncellenir.
+#### LocalAppTask (SwiftData)
+```swift
+@Model
+class LocalAppTask {
+    var firebaseId: String
+    var title: String
+    var taskDescription: String
+    var statusRawValue: String
+    var assignedTo: String
+    var createdAt: Date
+    var slaDate: Date?
+    var location: String?
+    var priority: String?
+    var category: String?
+    var signatureData: Data?
+    var mediaURLs: [String]
+    var checklist: Data? // JSON encoded ChecklistItem[]
+}
+```
+
+#### AppTask (Firestore - Codable)
+```swift
+struct AppTask: Codable, Identifiable {
+    let id: String
+    var title: String
+    var description: String
+    var status: AppTaskStatus
+    var assignedTo: String
+    var createdAt: Date
+    var slaDate: Date?
+    var location: String?
+    var priority: String?
+    var category: String?
+    var signatureStorageURL: String?
+    var mediaURLs: [String]
+    var checklist: [ChecklistItem]?
+}
+```
+
+#### Task Status Flow
+```swift
+enum AppTaskStatus: String, CaseIterable, Codable {
+    case planned = "Planlandı"
+    case todo = "Yapılacak"
+    case inProgress = "Çalışmada"
+    case inReview = "Kontrol"
+    case completed = "Tamamlandı"
+}
+```
+
+### Key Components
+
+#### 1. **Repository Layer** (`TaskRepository`)
+- Coordinates between local SwiftData and Firebase Firestore
+- Manages bidirectional synchronization
+- Handles conflict resolution
+- Provides unified data access interface
+
+#### 2. **Service Layer**
+- **TaskService**: Firestore CRUD operations
+- **StorageService**: Firebase Storage for media/signatures
+- **LocalNotificationService**: UNUserNotificationCenter management
+- **PDFService**: Report generation logic
+
+#### 3. **View Layer**
+- **MainView**: Dashboard with daily summary and TabView navigation
+- **TaskListView**: Filtered task list with live SLA indicators
+- **TaskDetailView**: Complete task management interface
+- **MyReportsView**: PDF report browser with Quick Look
+- **SettingsView**: User profile and app settings
+- **LoginView**: Firebase Authentication interface
+
+#### 4. **ViewModel Layer**
+- Manages UI state and business logic
+- Coordinates between View and Repository
+- Handles user interactions and validations
+- Implements Combine publishers for reactive updates
 
 ---
 
-## Çalıştırma
-1. Projeyi Xcode ile açın.
-2. GoogleService-Info.plist dosyasını eklediğinizden emin olun.
-3. Signing & Capabilities altında Team ve Bundle ID ayarlarını yapın.
-4. iOS 17+ simülatör veya gerçek cihaz seçin.
-5. Build & Run.
+## 🚀 Installation
+
+### Prerequisites
+
+- **Xcode 15+**
+- **iOS 17.0+** (Required for SwiftData)
+- **Swift 5.9+**
+- **Active Firebase project**
+
+### Setup Steps
+
+1. **Clone the repository**
+```bash
+git clone https://github.com/malisevdinoglu/TaskFlow__SwiftUI.git
+cd TaskFlow__SwiftUI
+```
+
+2. **Firebase Configuration**
+   - Create a new iOS app in [Firebase Console](https://console.firebase.google.com)
+   - Download `GoogleService-Info.plist`
+   - Add the file to your Xcode project (ensure it's included in the target)
+
+3. **Enable Firebase Services**
+   - **Authentication**: Enable Email/Password provider
+   - **Firestore Database**: Create database in your preferred region
+   - **Storage**: Enable Firebase Storage for media/signatures
+
+4. **Configure Firestore Security Rules** (Development)
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /tasks/{taskId} {
+      allow read, write: if request.auth != null;
+    }
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.uid == userId;
+    }
+  }
+}
+```
+
+5. **Configure Storage Security Rules** (Development)
+```javascript
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /signatures/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+    match /media/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
+
+6. **Create User Roles in Firestore**
+   - In Firestore Console, create a `users` collection
+   - Add documents with structure:
+   ```json
+   {
+     "email": "admin@example.com",
+     "role": "admin",
+     "name": "Admin User"
+   }
+   ```
+   - Use the Authentication UID as the document ID
+
+7. **Open in Xcode**
+```bash
+open TaskFlow.xcodeproj
+```
+
+8. **Configure Signing**
+   - Select your development team in `Signing & Capabilities`
+   - Update Bundle Identifier if needed
+
+9. **Build and Run**
+   - Select iOS 17+ Simulator or physical device
+   - Press `Cmd + R` to build and run
 
 ---
 
-## Kullanım Akışı
-1. Giriş yapın (Firebase Authentication).
-2. Dashboard’da (MainView) Bugünün Özeti’ni görüntüleyin. Admin iseniz “Yeni Görev” oluşturun.
-3. Görevlerim sekmesinde görevleri listeleyin ve duruma göre filtreleyin.
-4. SLA uyarılarını takip edin:
-   - 24 saatten az kala turuncu şerit + geri sayım.
-   - Geçmişse kırmızı şerit + kırmızı geri sayım.
-   - Tamamlanan görevlerde SLA görünmez.
-5. Görev detayında:
-   - Medya ekleyin, checklist’i yönetin, imza toplayın.
-   - İş kuralları sağlanınca durumu “Tamamlandı” yapın.
-6. Tamamlanan görev için PDF rapor oluşturun ve “Raporlarım” sekmesinden görüntüleyin/paylaşın.
+## 📱 Usage
+
+### First Launch
+
+1. **Login/Register** with email and password
+2. System fetches user role from Firestore
+3. Dashboard displays daily task summary
+
+### Creating Tasks (Admin Only)
+
+1. Tap **"New Task"** button on Dashboard
+2. Fill in task details:
+   - Title, Description
+   - Assigned User
+   - SLA Date/Time
+   - Location, Priority, Category
+   - Optional checklist items
+3. Task syncs to Firestore and appears in all users' lists
+
+### Managing Tasks
+
+1. **View Tasks**: Navigate to "My Tasks" tab
+2. **Filter by Status**: Tap filter icon to show specific statuses
+3. **Task Details**: Tap any task to view/edit details
+4. **Status Progression**:
+   - Add media before moving to Review
+   - Complete checklist items
+   - Add signature before marking as Completed
+5. **SLA Monitoring**: Live countdown updates every minute
+
+### Generating Reports
+
+1. Complete a task (mark as "Completed")
+2. Tap **"Generate PDF Report"** button
+3. Report automatically created and saved
+4. Navigate to **"My Reports"** tab to view all reports
+5. Tap report to preview with Quick Look
+6. Use share button to export or send
+
+### Notifications
+
+- App requests notification permission on first launch
+- Notifications scheduled 1 hour before SLA deadline
+- Tap notification to jump directly to task details
+- Notifications auto-cancel when task is completed
 
 ---
 
-## Teknik Detaylar
+## 🛠️ Tech Stack
 
-### SLA Mantığı (TaskListView)
-- dueSoonThreshold: 24 saat (86400 sn).
-- onTime: 24+ saat -> SLA şeridi ve geri sayım görünmez.
-- dueSoon: 0–24 saat -> turuncu sol şerit + geri sayım metni.
-- overdue: < 0 -> kırmızı sol şerit + kırmızı geri sayım metni.
-- completed: SLA şeridi ve sayaç görünmez (nötr).
-- Canlı güncelleme: `Timer.publish(every: 60, on: .main, in: .common).autoconnect()` ile `now` güncellenir (import Combine gerekir).
+| Category | Technology |
+|----------|-----------|
+| **UI Framework** | SwiftUI |
+| **Architecture** | MVVM + Repository Pattern |
+| **Local Persistence** | SwiftData (@Model) |
+| **Backend** | Firebase (Firestore, Authentication, Storage) |
+| **Reactive Programming** | Combine Framework |
+| **Notifications** | UserNotifications (UNUserNotificationCenter) |
+| **PDF Generation** | UIGraphicsPDFRenderer |
+| **Image Picking** | PhotosUI (PhotosPicker) |
+| **Dependency Management** | Swift Package Manager |
 
-### Bildirimler (LocalNotificationService)
-- SLA’den 1 saat önce bildirim planlanır.
-- Eğer hedef zaman geçmişteyse (test kolaylığı için) 5 saniye sonraya planlama yapılır.
-- Bildirim kimliği: `SLA-<taskId>`.
-- Görev tamamlanırsa planlı bildirim iptal edilir.
-
-### PDF Üretimi
-- ReportView PDF şablonu olarak kullanılır.
-- Çıktı dosya adı: `TaskFlowRapor-<taskId>.pdf`.
-- Belgeler klasörüne kaydedilir; MyReportsView listeleyip Quick Look ile önizler.
-
-### Veri Senkronizasyonu (TaskRepository)
-- Firestore’dan snapshot listener ile AppTask listesi çekilir.
-- SwiftData LocalAppTask ile eşleştirilerek insert/update yapılır.
-- Durum, imza, medya ve checklist değişiklikleri hem yerelde hem Firestore’da güncellenir.
-
-### İş Kuralları (TaskDetail)
-- Kontrol’e (inReview) geçiş: En az bir medya zorunlu.
-- Tamamlandı (completed): İmza zorunlu; checklist varsa tüm maddeler tamamlanmış olmalı.
-- Kurallar UI ve ViewModel seviyesinde kontrol edilir.
+### Firebase Dependencies
+```swift
+dependencies: [
+    .package(url: "https://github.com/firebase/firebase-ios-sdk", from: "10.0.0")
+]
+```
 
 ---
 
-## Proje Yapısı
+## 📂 Project Structure
 
-Aşağıdaki şema ve açıklamalar, projenin modüler yapısını ve her dosyanın sorumluluğunu özetler. Dosya/klasör adları projeye göre ufak farklılık gösterebilir.
-
-```text
+```
 TaskFlow/
-├─ TaskFlowApp.swift                 # App giriş noktası, modelContainer, auth yönlendirme, bildirim delegesi
+├── TaskFlowApp.swift              # App entry point, SwiftData container, delegates
 │
-├─ Models/
-│  ├─ LocalAppTask.swift             # SwiftData @Model; yerel görev yapısı ve yardımcı alanlar
-│  ├─ AppTask.swift                  # Firestore Codable modeli; uzak veri şeması
-│  ├─ ChecklistItem.swift            # Checklist maddesi modeli (id, text, isCompleted)
-│  └─ User.swift                     # (Varsa) Auth kullanıcı modeli; Firestore'dan decode edilir
+├── Models/
+│   ├── LocalAppTask.swift         # SwiftData @Model for local persistence
+│   ├── AppTask.swift              # Firestore Codable model
+│   ├── ChecklistItem.swift        # Checklist item structure
+│   └── User.swift                 # User model with role
 │
-├─ ViewModels/
-│  ├─ TaskListViewModel.swift        # Liste ekranı; Firebase dinleme/kurulum, repo koordinasyonu
-│  ├─ TaskDetailViewModel.swift      # Detay ekranı; durum geçişleri, medya, imza, PDF tetikleme
-│  ├─ NewTaskViewModel.swift         # Yeni görev oluşturma formu ve doğrulamalar
-│  └─ LoginViewModel.swift           # Giriş işlemleri ve hata yönetimi
+├── ViewModels/
+│   ├── TaskListViewModel.swift    # Task list state & Firebase listener
+│   ├── TaskDetailViewModel.swift  # Task detail logic, status transitions
+│   ├── NewTaskViewModel.swift     # New task creation & validation
+│   └── LoginViewModel.swift       # Authentication logic
 │
-├─ Views/
-│  ├─ MainView.swift                 # Dashboard + TabView (Ana Sayfa/Görevler/Raporlar/Ayarlar)
-│  ├─ TaskListView.swift             # Görev listesi, filtre, SLA görselleştirme
-│  ├─ TaskDetailView.swift           # Görev detayı, checklist, medya, imza, durum butonları
-│  ├─ MyReportsView.swift            # PDF rapor listesi, Quick Look, paylaşım ve silme
-│  ├─ SettingsView.swift             # Kullanıcı bilgisi, tema (placeholder), çıkış
-│  ├─ NewTaskView.swift              # Yeni görev oluşturma (SwiftData + Firestore senk.)
-│  └─ ReportView.swift               # PDF içerik şablonu
+├── Views/
+│   ├── MainView.swift            # Dashboard + TabView container
+│   ├── TaskListView.swift        # Task list with filters & SLA indicators
+│   ├── TaskDetailView.swift     # Task management interface
+│   ├── MyReportsView.swift      # PDF report browser
+│   ├── SettingsView.swift       # User settings & logout
+│   ├── NewTaskView.swift        # Task creation form
+│   └── ReportView.swift         # PDF template layout
 │
-├─ Services/
-│  ├─ TaskService.swift              # Firestore CRUD, checklist ve media URL güncellemeleri
-│  ├─ StorageService.swift           # Firebase Storage yükleme/silme (imza, medya)
-│  ├─ LocalNotificationService.swift # UNUserNotificationCenter ile SLA bildirim planlama/iptal
-│  └─ PDFService.swift               # (Varsa) PDF oluşturma mantığı
+├── Services/
+│   ├── TaskService.swift            # Firestore CRUD operations
+│   ├── StorageService.swift         # Firebase Storage management
+│   ├── LocalNotificationService.swift # Notification scheduling
+│   └── PDFService.swift             # PDF generation utilities
 │
-├─ Repository/
-│  └─ TaskRepository.swift           # Servisleri orkestre eder; SwiftData ↔ Firestore senkron
+├── Repository/
+│   └── TaskRepository.swift         # Orchestrates services & SwiftData
 │
-├─ Resources/
-│  ├─ GoogleService-Info.plist       # Firebase yapılandırma dosyası
-│  └─ Assets.xcassets                # Uygulama ikonları ve renk varlıkları
+├── Resources/
+│   ├── GoogleService-Info.plist     # Firebase configuration
+│   └── Assets.xcassets              # App icons & colors
 │
-└─ README.md                         # Bu dosya
+└── README.md                        # This file
+```
+
+---
+
+## 🔧 Configuration
+
+### SLA Thresholds
+
+```swift
+// In TaskListView.swift
+private let dueSoonThreshold: TimeInterval = 86400 // 24 hours
+
+// SLA States:
+// - onTime: 24+ hours remaining (no indicator)
+// - dueSoon: 0-24 hours (orange stripe + countdown)
+// - overdue: negative time (red stripe + red countdown)
+// - completed: no SLA display
+```
+
+### Notification Timing
+
+```swift
+// In LocalNotificationService.swift
+private let notificationLeadTime: TimeInterval = 3600 // 1 hour before SLA
+private let testFallbackDelay: TimeInterval = 5      // For testing if SLA already passed
+```
+
+### PDF Settings
+
+```swift
+// Report naming convention
+let filename = "TaskFlowRapor-\(taskId).pdf"
+
+// Saved to: Documents directory
+// Accessible via: Files app → On My iPhone → TaskFlow
+```
+
+---
+
+## 🎯 Business Rules
+
+### Status Transition Rules
+
+| From Status | To Status | Requirements |
+|------------|-----------|--------------|
+| Any | **In Review** | ≥ 1 media attachment required |
+| In Review | **Completed** | Digital signature required |
+| In Review | **Completed** | All checklist items must be completed (if checklist exists) |
+
+### Role Permissions
+
+| Action | Admin | User |
+|--------|-------|------|
+| View Tasks | ✅ | ✅ |
+| Edit Task Details | ✅ | ✅ |
+| Create New Tasks | ✅ | ❌ |
+| Delete Tasks | ✅ | ❌ |
+| Generate Reports | ✅ | ✅ |
+| Manage Checklist | ✅ | ✅ |
+| Add Media/Signature | ✅ | ✅ |
+
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Problem**: "GoogleService-Info.plist not found"
+- **Solution**: Ensure the file is added to your Xcode project and included in the app target
+
+**Problem**: Tasks not syncing from Firestore
+- **Solution**: Check Firebase Console rules, verify internet connection, confirm user is authenticated
+
+**Problem**: Notifications not appearing
+- **Solution**: 
+  - Go to iOS Settings → TaskFlow → Notifications
+  - Ensure notifications are allowed
+  - Re-request permission if denied
+
+**Problem**: PDF reports not generating
+- **Solution**: Verify task has completed status, check Documents directory write permissions
+
+**Problem**: SwiftData migration errors
+- **Solution**: Delete app and reinstall (development only), or implement proper migration strategy
+
+**Problem**: Images not uploading to Firebase Storage
+- **Solution**: Check Storage rules, verify network connectivity, ensure file size is within limits
+
+---
+
+## 🗺️ Roadmap
+
+### Planned Features
+
+- [ ] **Multi-language Support** (i18n)
+- [ ] **iPad Support** with optimized layouts
+- [ ] **Offline Mode** improvements with conflict resolution
+- [ ] **Task Templates** for recurring work
+- [ ] **Advanced Filtering** (by date range, priority, assignee)
+- [ ] **Analytics Dashboard** with charts and insights
+- [ ] **Team Chat** integration per task
+- [ ] **File Attachments** (PDF, DOC, XLS support)
+- [ ] **Recurring Tasks** with automated scheduling
+- [ ] **Widget Support** for home screen
+- [ ] **Apple Watch Companion App**
+- [ ] **Export to CSV/Excel** functionality
+- [ ] **Dark/Light Theme Toggle**
+- [ ] **Biometric Authentication** (Face ID / Touch ID)
+
+### Improvements
+
+- [ ] Unit Tests coverage
+- [ ] UI Tests automation
+- [ ] Performance optimization for large task lists
+- [ ] Enhanced error handling and user feedback
+- [ ] Accessibility improvements (VoiceOver support)
+- [ ] Custom notification sounds
+- [ ] Batch operations (multi-select tasks)
+- [ ] Advanced search with filters
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+```
+MIT License
+
+Copyright (c) 2024 Erdem Maliş
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+### Contribution Guidelines
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+### Code Style
+
+- Follow [Swift API Design Guidelines](https://swift.org/documentation/api-design-guidelines/)
+- Use SwiftLint for code consistency
+- Write clear commit messages
+- Add comments for complex logic
+- Update documentation for new features
+
+---
+
+## 📧 Contact
+
+**Developer**: Erdem Maliş
+
+- GitHub: [@malisevdinoglu](https://github.com/malisevdinoglu)
+- LinkedIn: [Erdem Maliş](https://linkedin.com/in/erdem-malis)
+- Email: [Contact via GitHub](https://github.com/malisevdinoglu)
+
+---
+
+## 🙏 Acknowledgments
+
+- Built with ❤️ using SwiftUI and Firebase
+- Inspired by modern task management principles
+- Thanks to the Swift and iOS development community
+- Firebase for providing robust backend infrastructure
+- Apple for excellent development tools and frameworks
+
+---
+
+<div align="center">
+
+**⭐ If you find this project useful, please consider giving it a star!**
+
+Made with 💻 and ☕ by [Erdem Maliş](https://github.com/malisevdinoglu)
+
+</div>

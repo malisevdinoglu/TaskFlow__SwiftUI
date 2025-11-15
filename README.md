@@ -562,7 +562,6 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 - GitHub: [@malisevdinoglu](https://github.com/malisevdinoglu)
 - LinkedIn: [M.Ali Sevdinoglu](https://linkedin.com/in/mehmet-ali-sevdinoglu)
-- Email: [Contact](malisevdinoglu1828@gmail.com)
 
 ---
 

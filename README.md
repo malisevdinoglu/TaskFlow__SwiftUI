@@ -592,7 +592,7 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 **⭐ If you find this project useful, please consider giving it a star!**
 
-Made with 💻 and ☕ by [Erdem Maliş](https://github.com/malisevdinoglu)
+Made with 💻 and ☕ by [Mehmet Ali Sevdinoglu](https://github.com/malisevdinoglu)
 
 </div>
 

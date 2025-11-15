@@ -558,11 +558,11 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 ## 📧 Contact
 
-**Developer**: Erdem Maliş
+**Developer**: 
 
 - GitHub: [@malisevdinoglu](https://github.com/malisevdinoglu)
-- LinkedIn: [Erdem Maliş](https://linkedin.com/in/erdem-malis)
-- Email: [Contact via GitHub](https://github.com/malisevdinoglu)
+- LinkedIn: [M.Ali Sevdinoglu](https://linkedin.com/in/mehmet-ali-sevdinoglu)
+- Email: [Contact](malisevdinoglu1828@gmail.com)
 
 ---
 
@@ -580,6 +580,6 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 
 **⭐ If you find this project useful, please consider giving it a star!**
 
-Made with 💻 and ☕ by [Erdem Maliş](https://github.com/malisevdinoglu)
+Made with 💻 and ☕ by (https://github.com/malisevdinoglu)
 
 </div>
